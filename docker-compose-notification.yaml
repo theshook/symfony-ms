@@ -1,0 +1,32 @@
+version: "3.7"
+
+networks:
+  default:
+    name: "haji-symfony-demo"
+    external: true
+
+services:
+  notifications:
+    container_name: "haji-symfony-demo-notifications"
+    restart: on-failure
+    build:
+      context: ./notifications/docker
+      dockerfile: Dockerfile-php
+    environment:
+      - DATABASE_URL=mysql://root:root@db/notifications
+      - MESSENGER_TRANSPORT_DSN=amqp://user:password@rabbitmq:5672/%2f/messages
+    volumes:
+      - ./notifications/:/var/www/project/:cached
+  notifications-gateway:
+    container_name: "haji-symfony-demo-notifications-gateway"
+    build:
+      context: ./notifications/docker
+      dockerfile: Dockerfile-nginx
+    volumes:
+      - ./notifications/:/var/www/project/:cached
+    ports:
+      - "10303:80"
+
+
+volumes:
+  persistent:

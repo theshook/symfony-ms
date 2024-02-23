@@ -1,0 +1,32 @@
+version: "3.7"
+
+networks:
+  default:
+    name: "haji-symfony-demo"
+    external: true
+
+services:
+  users:
+    container_name: "haji-symfony-demo-users"
+    restart: on-failure
+    build:
+      context: ./users/docker
+      dockerfile: Dockerfile-php
+    environment:
+      - DATABASE_URL=mysql://root:root@db/users
+      - MESSENGER_TRANSPORT_DSN=amqp://user:password@rabbitmq:5672/%2f/messages
+    volumes:
+      - ./users/:/var/www/project/:cached
+  users-gateway:
+    container_name: "haji-symfony-demo-users-gateway"
+    build:
+      context: ./users/docker
+      dockerfile: Dockerfile-nginx
+    volumes:
+      - ./users/:/var/www/project/:cached
+    ports:
+      - "10302:80"
+
+
+volumes:
+  persistent:
